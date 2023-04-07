@@ -35,6 +35,13 @@ function all_mouths () {
     show_mouth(MOUTH_SULK)
     basic.pause(1000)
 }
+// When energy is between -100 and 0, we are either falling asleep or wakening. AWAKE & ASLEEP both have a FLAT mouth, and differ only in the eyes being OPEN or SHUT. We vary the blink_gap & blink_time so blinks get progressively longer with shorter gaps as energy drops to -100. Nearer 0 we have shorter blinks with longer gaps.
+function adjust_blink () {
+    blink_gap = Math.map(energy, -100, 0, 500, 3000)
+    blink_gap = Math.constrain(blink_gap, 500, 3000)
+    blink_time = Math.map(energy, -100, 0, 3000, 500)
+    blink_time = Math.constrain(blink_time, 500, 3000)
+}
 function show_eyes (eyes: number) {
     pixels = eyes
     for (let index = 0; index <= 9; index++) {
@@ -49,15 +56,16 @@ function show_eyes (eyes: number) {
     }
 }
 function provoke (mood: number, amount: number) {
-    if (amount > 0 - energy) {
+    if (!(my_mood == MOOD_AWAKE) && amount > 0 - energy) {
         new_mood(MOOD_AWAKE)
-    } else if (amount > 100 - energy) {
+    } else if (!(my_mood == mood) && amount > 100 - energy) {
         new_mood(mood)
     }
     energy += amount
     if (energy > 200) {
         energy = 200
     }
+    adjust_blink()
 }
 function look_right () {
     show_eyes(EYES_RIGHT)
@@ -143,39 +151,35 @@ function new_mood (mood: number) {
     } else if (mood == MOOD_ASLEEP) {
         my_eyes = EYES_SHUT
         my_mouth = MOUTH_FLAT
-        blinkgap = 2000
-        blinktime = 1000
+        blink_gap = 2000
+        blink_time = 1000
     } else if (mood == MOOD_AWAKE) {
-        blinkgap = 800
-        blinktime = 200
+        blink_gap = 800
+        blink_time = 200
         my_eyes = EYES_OPEN
         my_mouth = MOUTH_FLAT
     } else if (mood == MOOD_HAPPY) {
-        blinkgap = 500
-        blinktime = 100
+        blink_gap = 500
+        blink_time = 100
         my_eyes = EYES_OPEN
         my_mouth = MOUTH_GRIN
     } else if (mood == MOOD_SAD) {
-        blinkgap = 1000
-        blinktime = 800
+        blink_gap = 1000
+        blink_time = 800
         my_eyes = EYES_SAD
         my_mouth = MOUTH_SULK
     } else if (mood == MOOD_ANGRY) {
-        blinkgap = 10000
-        blinktime = 100
+        blink_gap = 10000
+        blink_time = 100
         my_eyes = EYES_MAD
         my_mouth = MOUTH_SHOUT
     } else if (mood == MOOD_GOSH) {
-        blinkgap = 5000
-        blinktime = 800
+        blink_gap = 5000
+        blink_time = 800
         my_eyes = EYES_POP
         my_mouth = MOUTH_OPEN
     }
     my_mood = mood
-    if (my_mood != MOOD_DEAD) {
-        show_eyes(my_eyes)
-        show_mouth(my_mouth)
-    }
 }
 function maybe_blink_or_snore () {
     if (input.runningTime() > next_blink && !(blinking)) {
@@ -186,25 +190,26 @@ function maybe_blink_or_snore () {
         }
         blinking = true
     }
-    if (blinking && input.runningTime() > next_blink + blinktime) {
+    if (blinking && input.runningTime() > next_blink + blink_time) {
         if (my_mood == MOOD_ASLEEP) {
             show_mouth(my_mouth)
         } else {
             show_eyes(my_eyes)
         }
-        next_blink = input.runningTime() + randint(blinkgap, 3 * blinkgap)
+        next_blink = input.runningTime() + randint(blink_gap, 3 * blink_gap)
         blinking = false
     }
 }
 function tire (amount: number) {
-    if (amount > energy) {
+    if (!(my_mood == MOOD_AWAKE) && amount > energy) {
         new_mood(MOOD_AWAKE)
-    } else if (amount > energy - -100) {
+    } else if (!(my_mood == MOOD_ASLEEP) && amount > energy - -100) {
         new_mood(MOOD_ASLEEP)
-    } else if (amount > energy - -600) {
+    } else if (!(my_mood == MOOD_DEAD) && amount > energy - -600) {
         new_mood(MOOD_DEAD)
     }
     energy += 0 - amount
+    adjust_blink()
 }
 function express () {
     show_eyes(EYES_OPEN)
@@ -233,15 +238,19 @@ function express () {
     basic.pause(1000)
 }
 let blinking = false
+let next_blink = 0
 let EYES_SHUT = 0
 let EYES_SAD = 0
 let EYES_POP = 0
 let EYES_MAD = 0
 let EYES_LEFT = 0
 let EYES_RIGHT = 0
+let my_mood = 0
 let y = 0
 let x = 0
 let pixels = 0
+let blink_time = 0
+let blink_gap = 0
 let MOUTH_SULK = 0
 let MOUTH_SHOUT = 0
 let MOUTH_RIGHT = 0
@@ -249,6 +258,10 @@ let MOUTH_OPEN = 0
 let MOUTH_OK = 0
 let MOUTH_HMMM = 0
 let MOUTH_GRIN = 0
+let MOUTH_FLAT = 0
+let EYES_OPEN = 0
+let my_mouth = 0
+let my_eyes = 0
 let MOUTH_LEFT = 0
 let MOOD_GOSH = 0
 let MOOD_ANGRY = 0
@@ -258,38 +271,21 @@ let MOOD_ASLEEP = 0
 let MOOD_DEAD = 0
 let energy = 0
 let MOOD_AWAKE = 0
-let my_mood = 0
-let MOUTH_FLAT = 0
-let my_mouth = 0
-let EYES_OPEN = 0
-let my_eyes = 0
-let next_blink = 0
-let blinktime = 0
-let blinkgap = 0
 setup_eyes()
 setup_mouths()
 set_up_moods()
-let start = input.runningTime()
-blinkgap = 3000
-blinktime = 300
-next_blink = input.runningTime() + blinkgap
-my_eyes = EYES_OPEN
-my_mouth = MOUTH_FLAT
-show_eyes(my_eyes)
-show_mouth(my_mouth)
-my_mood = MOOD_AWAKE
+provoke(MOOD_AWAKE, 25)
 energy = 100
 let light_was = input.lightLevel()
 basic.forever(function () {
 	
 })
 loops.everyInterval(100, function () {
-    maybe_blink_or_snore()
-    tire(1)
     if (input.lightLevel() < 100) {
         provoke(MOOD_SAD, 25)
     } else if (input.lightLevel() - light_was > 50) {
         provoke(MOOD_GOSH, 100)
     }
     light_was = input.lightLevel()
+    tire(1)
 })

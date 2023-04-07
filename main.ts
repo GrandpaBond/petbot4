@@ -56,14 +56,14 @@ function show_eyes (eyes: number) {
     }
 }
 function provoke (mood: number, amount: number) {
-    if (!(my_mood == MOOD_AWAKE) && amount > 0 - energy) {
+    if (!(my_mood == MOOD_AWAKE) && energy + amount > 0) {
         new_mood(MOOD_AWAKE)
-    } else if (!(my_mood == mood) && amount > 100 - energy) {
+    } else if (!(my_mood == mood) && energy + amount > 100) {
         new_mood(mood)
     }
     energy += amount
-    if (energy > 200) {
-        energy = 200
+    if (energy > 300) {
+        energy = 300
     }
     adjust_blink()
 }
@@ -180,6 +180,11 @@ function new_mood (mood: number) {
         my_mouth = MOUTH_OPEN
     }
     my_mood = mood
+    if (my_mood != MOOD_DEAD) {
+        show_eyes(my_eyes)
+        show_mouth(my_mouth)
+    }
+    serial.writeValue("new mood", my_mood)
 }
 function maybe_blink_or_snore () {
     if (input.runningTime() > next_blink && !(blinking)) {
@@ -201,11 +206,11 @@ function maybe_blink_or_snore () {
     }
 }
 function tire (amount: number) {
-    if (!(my_mood == MOOD_AWAKE) && amount > energy) {
+    if (!(my_mood == MOOD_AWAKE) && energy - amount < 0) {
         new_mood(MOOD_AWAKE)
-    } else if (!(my_mood == MOOD_ASLEEP) && amount > energy - -100) {
+    } else if (!(my_mood == MOOD_ASLEEP) && energy - amount < -100) {
         new_mood(MOOD_ASLEEP)
-    } else if (!(my_mood == MOOD_DEAD) && amount > energy - -600) {
+    } else if (!(my_mood == MOOD_DEAD) && energy - amount < -600) {
         new_mood(MOOD_DEAD)
     }
     energy += 0 - amount
@@ -269,23 +274,27 @@ let MOOD_SAD = 0
 let MOOD_HAPPY = 0
 let MOOD_ASLEEP = 0
 let MOOD_DEAD = 0
-let energy = 0
 let MOOD_AWAKE = 0
+let energy = 0
 setup_eyes()
 setup_mouths()
 set_up_moods()
-provoke(MOOD_AWAKE, 25)
 energy = 100
 let light_was = input.lightLevel()
+provoke(MOOD_AWAKE, 25)
+serial.writeLine("energy level")
 basic.forever(function () {
 	
 })
-loops.everyInterval(100, function () {
+loops.everyInterval(200, function () {
     if (input.lightLevel() < 100) {
         provoke(MOOD_SAD, 25)
     } else if (input.lightLevel() - light_was > 50) {
         provoke(MOOD_GOSH, 100)
     }
     light_was = input.lightLevel()
+    maybe_blink_or_snore()
     tire(1)
+    serial.writeNumber(energy)
+    serial.writeLine("")
 })

@@ -37,10 +37,8 @@ function all_mouths () {
 }
 // When energy is between -100 and 0, we are either falling asleep or wakening. AWAKE & ASLEEP both have a FLAT mouth, and differ only in the eyes being OPEN or SHUT. We vary the blink_gap & blink_time so blinks get progressively longer with shorter gaps as energy drops to -100. Nearer 0 we have shorter blinks with longer gaps.
 function adjust_blink () {
-    blink_gap = Math.map(energy, -100, 0, 500, 3000)
-    blink_gap = Math.constrain(blink_gap, 500, 3000)
-    blink_time = Math.map(energy, -100, 0, 3000, 500)
-    blink_time = Math.constrain(blink_time, 500, 3000)
+    blink_gap = Math.constrain(Math.map(energy, -100, 0, 500, 3000), 0, 3000)
+    blink_time = Math.constrain(Math.map(energy, -100, 0, 3000, 500), 0, 3000)
 }
 function show_eyes (eyes: number) {
     pixels = eyes
@@ -56,9 +54,9 @@ function show_eyes (eyes: number) {
     }
 }
 function provoke (mood: number, amount: number) {
-    if (!(my_mood == MOOD_AWAKE) && energy + amount > 0) {
+    if (energy < 0 && energy + amount > 0) {
         new_mood(MOOD_AWAKE)
-    } else if (!(my_mood == mood) && energy + amount > 100) {
+    } else if (energy < 100 && energy + amount > 100) {
         new_mood(mood)
     }
     energy += amount
@@ -150,7 +148,7 @@ function new_mood (mood: number) {
         basic.showIcon(IconNames.Skull)
     } else if (mood == MOOD_ASLEEP) {
         my_eyes = EYES_SHUT
-        my_mouth = MOUTH_FLAT
+        my_mouth = MOUTH_HMMM
         blink_gap = 2000
         blink_time = 1000
     } else if (mood == MOOD_AWAKE) {
@@ -206,11 +204,11 @@ function maybe_blink_or_snore () {
     }
 }
 function tire (amount: number) {
-    if (!(my_mood == MOOD_AWAKE) && energy - amount < 0) {
+    if (energy > 0 && energy - amount < 0) {
         new_mood(MOOD_AWAKE)
-    } else if (!(my_mood == MOOD_ASLEEP) && energy - amount < -100) {
+    } else if (energy > -100 && energy - amount < -100) {
         new_mood(MOOD_ASLEEP)
-    } else if (!(my_mood == MOOD_DEAD) && energy - amount < -600) {
+    } else if (energy > -600 && energy - amount < -600) {
         new_mood(MOOD_DEAD)
     }
     energy += 0 - amount
@@ -244,13 +242,13 @@ function express () {
 }
 let blinking = false
 let next_blink = 0
+let my_mood = 0
 let EYES_SHUT = 0
 let EYES_SAD = 0
 let EYES_POP = 0
 let EYES_MAD = 0
 let EYES_LEFT = 0
 let EYES_RIGHT = 0
-let my_mood = 0
 let y = 0
 let x = 0
 let pixels = 0
@@ -282,6 +280,7 @@ set_up_moods()
 energy = 100
 let light_was = input.lightLevel()
 provoke(MOOD_AWAKE, 25)
+new_mood(MOOD_AWAKE)
 serial.writeLine("energy level")
 basic.forever(function () {
 	

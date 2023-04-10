@@ -72,22 +72,26 @@ input.onGesture(Gesture.SixG, function () {
 // These are controlled by two time-periods: switch_gap sets how often, and switch_time says how long to show the alternate face.
 // So if it's time to switch, this function changes faces
 function maybe_switch () {
-    if (input.runningTime() > next_switch && !(switched)) {
-        show_eyes(my_other_eyes)
-        show_mouth(my_other_mouth)
-        switched = true
+    now = input.runningTime()
+    if (!(switched)) {
+        if (now > next_switch) {
+            show_eyes(my_other_eyes)
+            show_mouth(my_other_mouth)
+            switched = true
+        }
+    } else {
+        if (now > next_switch + switch_time) {
+            show_mouth(my_mouth)
+            show_eyes(my_eyes)
+            switched = false
+            serial.writeValue("energy", energy)
+            serial.writeValue("mood", my_mood)
+            serial.writeValue("switch_time", switch_time)
+            serial.writeValue("switch_gap", switch_gap)
+            serial.writeLine("")
+            next_switch = input.runningTime() + randint(switch_gap, switch_vary * switch_gap)
+        }
     }
-    if (switched && input.runningTime() > next_switch + switch_time) {
-        show_mouth(my_mouth)
-        show_eyes(my_eyes)
-        switched = false
-        serial.writeValue("energy", energy)
-        serial.writeValue("mood", my_mood)
-        serial.writeValue("switch_time", switch_time)
-        serial.writeValue("switch_gap", switch_gap)
-        serial.writeLine("")
-    }
-    next_switch = input.runningTime() + randint(switch_gap, switch_vary * switch_gap)
 }
 input.onSound(DetectedSound.Loud, function () {
     excite(zMOOD_GOSH, 300)
@@ -111,14 +115,14 @@ function set_mood (eyes: number, mouth: number, other_eyes: number, other_mouth:
     my_mouth = mouth
     my_other_eyes = other_eyes
     my_other_mouth = other_mouth
+    next_switch = input.runningTime() + gap
     switch_gap = gap
     switch_time = time
     switch_vary = vary
+    switched = false
 }
 function maybe_react () {
     energy += -1
-    switch_gap = Math.constrain(Math.map(energy, -100, 100, 500, 5000), 500, 5000)
-    switch_time = Math.constrain(Math.map(energy, -100, 100, 5000, 500), 500, 5000)
     if (energy > 100 && my_mood != next_mood) {
         // react to input
         new_mood(next_mood)
@@ -134,8 +138,6 @@ function maybe_react () {
         // die of neglect!
         // ---permanently!
         new_mood(zMOOD_DEAD)
-    } else {
-    	
     }
 }
 function setup_mouths () {
@@ -213,6 +215,7 @@ let switch_time = 0
 let my_other_mouth = 0
 let my_other_eyes = 0
 let next_switch = 0
+let now = 0
 let zEYES_SHUT = 0
 let zEYES_SAD = 0
 let zEYES_POP = 0
@@ -231,9 +234,9 @@ let zMOOD_GOSH = 0
 let zMOOD_ANGRY = 0
 let zMOOD_SAD = 0
 let zMOOD_HAPPY = 0
-let zMOOD_ASLEEP = 0
 let zMOOD_DEAD = 0
 let zMOOD_BORED = 0
+let zMOOD_ASLEEP = 0
 let next_mood = 0
 let energy = 0
 let light_was = 0
@@ -247,8 +250,8 @@ let start = 33333
 switched = false
 light_was = input.lightLevel()
 energy = 199
-next_mood = zMOOD_BORED
-new_mood(next_mood)
+next_mood = zMOOD_ASLEEP
+new_mood(zMOOD_BORED)
 loops.everyInterval(200, function () {
     if (my_mood != zMOOD_DEAD) {
         check_environment()

@@ -1,60 +1,83 @@
 function set_up_moods () {
-    MOOD_DEAD = 0
-    MOOD_ASLEEP = 1
-    MOOD_BORED = 2
-    MOOD_HAPPY = 3
-    MOOD_SAD = 4
-    MOOD_ANGRY = 5
-    MOOD_GOSH = 6
+    zMOOD_DEAD = 0
+    zMOOD_ASLEEP = 1
+    zMOOD_BORED = 2
+    zMOOD_HAPPY = 3
+    zMOOD_SAD = 4
+    zMOOD_ANGRY = 5
+    zMOOD_GOSH = 6
+    zMOOD_SHIVER = 7
 }
 function look_left () {
-    show_eyes(energy)
-    show_mouth(MOUTH_LEFT)
-    basic.pause(500)
+    show_eyes(zEYES_LEFT)
+    show_mouth(zMOUTH_LEFT)
+    basic.pause(1000)
     show_eyes(my_eyes)
     show_mouth(my_mouth)
 }
+// In most moods, we temporarily switch between two faces.
+// So we may be blinking, snoring, shivering or laughing etc.
+// These are controlled by two time-periods: switch_gap sets how often, and switch_time says how long to show the alternate face.
+// So if it's time to switch, this function changes faces
+function _switch () {
+    if (input.runningTime() > next_switch && !(switched)) {
+        show_eyes(my_other_eyes)
+        show_mouth(my_other_mouth)
+        switched = true
+    }
+    if (switched && input.runningTime() > next_switch + switch_time) {
+        show_mouth(my_mouth)
+        show_eyes(my_eyes)
+        switched = false
+        serial.writeValue("energy", energy)
+        serial.writeValue("mood", my_mood)
+        serial.writeValue("switch_time", switch_time)
+        serial.writeValue("switch_gap", switch_gap)
+        serial.writeLine("")
+    }
+    next_switch = input.runningTime() + randint(switch_gap, switch_vary * switch_gap)
+}
 function all_mouths () {
-    show_eyes(EYES_OPEN)
-    show_mouth(MOUTH_FLAT)
+    show_eyes(zEYES_OPEN)
+    show_mouth(zMOUTH_FLAT)
     basic.pause(1000)
-    show_mouth(MOUTH_GRIN)
+    show_mouth(zMOUTH_GRIN)
     basic.pause(1000)
-    show_mouth(MOUTH_HMMM)
+    show_mouth(zMOUTH_HMMM)
     basic.pause(1000)
-    show_mouth(MOUTH_LEFT)
+    show_mouth(zMOUTH_LEFT)
     basic.pause(1000)
-    show_mouth(MOUTH_OK)
+    show_mouth(zMOUTH_OK)
     basic.pause(1000)
-    show_mouth(MOUTH_OPEN)
+    show_mouth(zMOUTH_OPEN)
     basic.pause(1000)
-    show_mouth(MOUTH_RIGHT)
+    show_mouth(zMOUTH_RIGHT)
     basic.pause(1000)
-    show_mouth(MOUTH_SHOUT)
+    show_mouth(zMOUTH_SHOUT)
     basic.pause(1000)
-    show_mouth(MOUTH_SULK)
+    show_mouth(zMOUTH_SULK)
     basic.pause(1000)
 }
 function show_eyes (eyes: number) {
-    pixels = eyes
-    for (let index = 0; index <= 9; index++) {
-        x = index % 5
-        y = Math.floor(index / 5)
-        if (pixels % 2 == 1) {
+    z_pixels = eyes
+    for (let zindex = 0; zindex <= 9; zindex++) {
+        x = zindex % 5
+        y = Math.floor(zindex / 5)
+        if (z_pixels % 2 == 1) {
             led.plot(x, y)
         } else {
             led.unplot(x, y)
         }
-        pixels = Math.floor(pixels / 2)
+        z_pixels = Math.floor(z_pixels / 2)
     }
 }
 input.onLogoEvent(TouchButtonEvent.LongPressed, function () {
-    excite(MOOD_HAPPY, 100)
+    excite(zMOOD_HAPPY, 100)
 })
 function look_right () {
-    show_eyes(EYES_RIGHT)
-    show_mouth(MOUTH_RIGHT)
-    basic.pause(500)
+    show_eyes(zEYES_RIGHT)
+    show_mouth(zMOUTH_RIGHT)
+    basic.pause(1000)
     show_eyes(my_eyes)
     show_mouth(my_mouth)
 }
@@ -69,68 +92,49 @@ function excite (mood: number, amount: number) {
         energy = 300
     }
 }
-function feel () {
-    energy += -1
-    blink_gap = Math.constrain(Math.map(energy, -100, 100, 500, 5000), 500, 5000)
-    blink_time = Math.constrain(Math.map(energy, -100, 100, 5000, 500), 500, 5000)
-    if (energy > 100 && my_mood != next_mood) {
-        // react to input
-        new_mood(next_mood)
-    } else if (energy > 0 && my_mood != MOOD_BORED) {
-        // get bored (or wake up)
-        new_mood(MOOD_BORED)
-    } else if (energy < 0 && my_mood != MOOD_ASLEEP) {
-        // fall asleep
-        new_mood(MOOD_ASLEEP)
-    } else if (energy < -600) {
-        // die of neglect!
-        // ---permanently!
-        new_mood(MOOD_DEAD)
-    }
-}
 function setup_eyes () {
-    EYES_LEFT = 873
-    EYES_MAD = 347
-    EYES_OPEN = 891
-    EYES_POP = 561
-    EYES_RIGHT = 882
-    EYES_SAD = 874
-    EYES_SHUT = 864
+    zEYES_LEFT = 873
+    zEYES_MAD = 347
+    zEYES_OPEN = 891
+    zEYES_POP = 561
+    zEYES_RIGHT = 882
+    zEYES_SAD = 874
+    zEYES_SHUT = 864
 }
 function show_mouth (mouth: number) {
-    pixels = mouth
-    for (let index = 0; index <= 14; index++) {
-        x = index % 5
-        y = 2 + Math.floor(index / 5)
-        if (pixels % 2 == 1) {
+    z_pixels = mouth
+    for (let zindex = 0; zindex <= 14; zindex++) {
+        x = zindex % 5
+        y = 2 + Math.floor(zindex / 5)
+        if (z_pixels % 2 == 1) {
             led.plot(x, y)
         } else {
             led.unplot(x, y)
         }
-        pixels = Math.floor(pixels / 2)
+        z_pixels = Math.floor(z_pixels / 2)
     }
 }
 input.onGesture(Gesture.SixG, function () {
-    excite(MOOD_ANGRY, 300)
+    excite(zMOOD_ANGRY, 300)
 })
 input.onSound(DetectedSound.Loud, function () {
-    excite(MOOD_GOSH, 300)
+    excite(zMOOD_GOSH, 300)
 })
 function all_eyes () {
-    show_mouth(MOUTH_FLAT)
-    show_eyes(EYES_OPEN)
+    show_mouth(zMOUTH_FLAT)
+    show_eyes(zEYES_OPEN)
     basic.pause(1000)
-    show_eyes(EYES_SHUT)
+    show_eyes(zEYES_SHUT)
     basic.pause(1000)
-    show_eyes(EYES_LEFT)
+    show_eyes(zEYES_LEFT)
     basic.pause(1000)
-    show_eyes(EYES_RIGHT)
+    show_eyes(zEYES_RIGHT)
     basic.pause(1000)
-    show_eyes(EYES_SAD)
+    show_eyes(zEYES_SAD)
     basic.pause(1000)
-    show_eyes(EYES_MAD)
+    show_eyes(zEYES_MAD)
     basic.pause(1000)
-    show_eyes(EYES_POP)
+    show_eyes(zEYES_POP)
     basic.pause(1000)
 }
 // Sometime, we should add some useful behaviour for button B 
@@ -138,169 +142,202 @@ input.onButtonPressed(Button.B, function () {
     look_right()
 })
 input.onGesture(Gesture.Shake, function () {
-    excite(MOOD_GOSH, 50)
+    excite(zMOOD_GOSH, 50)
 })
+function set_mood (eyes: number, mouth: number, other_eyes: number, other_mouth: number, gap: number, time: number, vary: number) {
+    my_eyes = eyes
+    my_mouth = mouth
+    my_other_eyes = other_eyes
+    my_other_mouth = other_mouth
+    switch_gap = gap
+    switch_time = time
+    switch_vary = vary
+}
 function setup_mouths () {
-    MOUTH_FLAT = 448
-    MOUTH_GRIN = 14880
-    MOUTH_HMMM = 14464
-    MOUTH_LEFT = 6176
-    MOUTH_OK = 4544
-    MOUTH_OPEN = 4420
-    MOUTH_RIGHT = 12800
-    MOUTH_SHOUT = 14784
-    MOUTH_SULK = 17856
+    zMOUTH_FLAT = 448
+    zMOUTH_GRIN = 14880
+    zMOUTH_HMMM = 14464
+    zMOUTH_LEFT = 6176
+    zMOUTH_OK = 4544
+    zMOUTH_OPEN = 4420
+    zMOUTH_RIGHT = 12800
+    zMOUTH_SHOUT = 14784
+    zMOUTH_SULK = 17856
 }
 input.onGesture(Gesture.ThreeG, function () {
-    excite(MOOD_GOSH, 100)
+    excite(zMOOD_GOSH, 100)
 })
 function new_mood (mood: number) {
-    if (mood == MOOD_DEAD) {
+    if (mood == zMOOD_DEAD) {
         basic.showIcon(IconNames.Skull)
-    } else if (mood == MOOD_ASLEEP) {
-        my_eyes = EYES_SHUT
-        my_mouth = MOUTH_HMMM
-        blink_gap = 2000
-        blink_time = 1000
-    } else if (mood == MOOD_BORED) {
-        blink_gap = 800
-        blink_time = 200
-        my_eyes = EYES_OPEN
-        my_mouth = MOUTH_FLAT
-    } else if (mood == MOOD_HAPPY) {
-        blink_gap = 500
-        blink_time = 100
-        my_eyes = EYES_OPEN
-        my_mouth = MOUTH_GRIN
-    } else if (mood == MOOD_SAD) {
-        blink_gap = 1000
-        blink_time = 800
-        my_eyes = EYES_SAD
-        my_mouth = MOUTH_SULK
-    } else if (mood == MOOD_ANGRY) {
-        blink_gap = 10000
-        blink_time = 100
-        my_eyes = EYES_MAD
-        my_mouth = MOUTH_SHOUT
-    } else if (mood == MOOD_GOSH) {
-        blink_gap = 5000
-        blink_time = 800
-        my_eyes = EYES_POP
-        my_mouth = MOUTH_OPEN
+    } else if (mood == zMOOD_ASLEEP) {
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
+    } else if (mood == zMOOD_BORED) {
+        switch_gap = 800
+        switch_time = 200
+        my_eyes = zEYES_OPEN
+        my_mouth = zMOUTH_FLAT
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
+    } else if (mood == zMOOD_HAPPY) {
+        switch_gap = 500
+        switch_time = 100
+        my_eyes = zEYES_OPEN
+        my_mouth = zMOUTH_GRIN
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
+    } else if (mood == zMOOD_SAD) {
+        switch_gap = 1000
+        switch_time = 800
+        my_eyes = zEYES_SAD
+        my_mouth = zMOUTH_SULK
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
+    } else if (mood == zMOOD_ANGRY) {
+        switch_gap = 10000
+        switch_time = 100
+        my_eyes = zEYES_MAD
+        my_mouth = zMOUTH_SHOUT
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
+    } else if (mood == zMOOD_GOSH) {
+        switch_gap = 5000
+        switch_time = 800
+        my_eyes = zEYES_POP
+        my_mouth = zMOUTH_OPEN
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
+    } else if (mood == zMOOD_SHIVER) {
+    	
+    } else if (mood == zMOOD_SHIVER) {
+    	
+    } else {
+    	
     }
     my_mood = mood
-    if (my_mood != MOOD_DEAD) {
+    if (my_mood != zMOOD_DEAD) {
         show_eyes(my_eyes)
         show_mouth(my_mouth)
     }
     serial.writeValue("new mood", my_mood)
     serial.writeLine("")
 }
-function maybe_blink_or_snore () {
-    if (input.runningTime() > next_blink && !(blinking)) {
-        if (my_mood == MOOD_ASLEEP) {
-            // only snore when deeply asleep!
-            if (energy < -200) {
-                show_mouth(MOUTH_OPEN)
-            }
-        } else {
-            show_eyes(EYES_SHUT)
-        }
-        blinking = true
+function check_environment () {
+    if (input.lightLevel() - light_was > 50) {
+        excite(zMOOD_GOSH, 200)
+    } else if (input.lightLevel() < 100) {
+        excite(zMOOD_SAD, 25)
     }
-    if (blinking && input.runningTime() > next_blink + blink_time) {
-        if (my_mood == MOOD_ASLEEP) {
-            show_mouth(my_mouth)
-        } else {
-            show_eyes(my_eyes)
-        }
-        next_blink = input.runningTime() + randint(blink_gap, 3 * blink_gap)
-        blinking = false
-        serial.writeValue("energy", energy)
-        serial.writeValue("blink_time", blink_time)
-        serial.writeValue("blink_gap", blink_gap)
-        serial.writeLine("")
+    light_was = input.lightLevel()
+    if (input.temperature() < 15) {
+        excite(zMOOD_SAD, 25)
+    } else if (input.temperature() < 15) {
+        excite(zMOOD_SHIVER, 300)
+    }
+}
+function maybe_react () {
+    energy += -1
+    switch_gap = Math.constrain(Math.map(energy, -100, 100, 500, 5000), 500, 5000)
+    switch_time = Math.constrain(Math.map(energy, -100, 100, 5000, 500), 500, 5000)
+    if (energy > 100 && my_mood != next_mood) {
+        // react to input
+        new_mood(next_mood)
+    } else if (energy > 0 && my_mood != zMOOD_BORED) {
+        // get bored (or wake up)
+        new_mood(zMOOD_BORED)
+    } else if (energy < 0 && my_mood != zMOOD_ASLEEP) {
+        // fall asleep
+        new_mood(zMOOD_ASLEEP)
+    } else if (energy < -100) {
+        let zMOOD_SNORING = 0
+        new_mood(zMOOD_SNORING)
+    } else if (energy < -600) {
+        // die of neglect!
+        // ---permanently!
+        new_mood(zMOOD_DEAD)
+    } else {
+    	
     }
 }
 function express () {
-    show_eyes(EYES_OPEN)
-    show_mouth(MOUTH_FLAT)
+    show_eyes(zEYES_OPEN)
+    show_mouth(zMOUTH_FLAT)
     basic.pause(1000)
-    show_eyes(EYES_SHUT)
+    show_eyes(zEYES_SHUT)
     basic.pause(200)
-    show_eyes(EYES_OPEN)
+    show_eyes(zEYES_OPEN)
     basic.pause(1000)
-    show_mouth(MOUTH_GRIN)
+    show_mouth(zMOUTH_GRIN)
     basic.pause(2000)
-    show_mouth(MOUTH_FLAT)
+    show_mouth(zMOUTH_FLAT)
     basic.pause(5000)
-    show_eyes(EYES_SAD)
-    show_mouth(MOUTH_SULK)
+    show_eyes(zEYES_SAD)
+    show_mouth(zMOUTH_SULK)
     basic.pause(1000)
-    show_eyes(EYES_SHUT)
+    show_eyes(zEYES_SHUT)
     basic.pause(200)
-    show_eyes(EYES_SAD)
+    show_eyes(zEYES_SAD)
     basic.pause(1000)
-    show_mouth(MOUTH_GRIN)
+    show_mouth(zMOUTH_GRIN)
     basic.pause(2000)
-    show_mouth(MOUTH_FLAT)
+    show_mouth(zMOUTH_FLAT)
     basic.pause(5000)
     basic.pause(1000)
     basic.pause(1000)
 }
-let blinking = false
-let next_blink = 0
-let EYES_SHUT = 0
-let EYES_SAD = 0
-let EYES_POP = 0
-let EYES_MAD = 0
-let EYES_LEFT = 0
-let my_mood = 0
-let blink_time = 0
-let blink_gap = 0
-let next_mood = 0
-let EYES_RIGHT = 0
+let zEYES_SHUT = 0
+let zEYES_SAD = 0
+let zEYES_POP = 0
+let zEYES_MAD = 0
+let zEYES_RIGHT = 0
 let y = 0
 let x = 0
-let pixels = 0
-let MOUTH_SULK = 0
-let MOUTH_SHOUT = 0
-let MOUTH_RIGHT = 0
-let MOUTH_OPEN = 0
-let MOUTH_OK = 0
-let MOUTH_HMMM = 0
-let MOUTH_GRIN = 0
-let MOUTH_FLAT = 0
-let EYES_OPEN = 0
+let z_pixels = 0
+let zMOUTH_SULK = 0
+let zMOUTH_SHOUT = 0
+let zMOUTH_RIGHT = 0
+let zMOUTH_OPEN = 0
+let zMOUTH_OK = 0
+let zMOUTH_HMMM = 0
+let zMOUTH_GRIN = 0
+let zMOUTH_FLAT = 0
+let zEYES_OPEN = 0
+let switch_vary = 0
+let switch_gap = 0
+let my_mood = 0
+let switch_time = 0
+let my_other_mouth = 0
+let my_other_eyes = 0
+let next_switch = 0
 let my_mouth = 0
 let my_eyes = 0
-let MOUTH_LEFT = 0
-let MOOD_GOSH = 0
-let MOOD_ANGRY = 0
-let MOOD_SAD = 0
-let MOOD_HAPPY = 0
-let MOOD_ASLEEP = 0
-let MOOD_DEAD = 0
-let MOOD_BORED = 0
+let zMOUTH_LEFT = 0
+let zEYES_LEFT = 0
+let zMOOD_SHIVER = 0
+let zMOOD_GOSH = 0
+let zMOOD_ANGRY = 0
+let zMOOD_SAD = 0
+let zMOOD_HAPPY = 0
+let zMOOD_ASLEEP = 0
+let zMOOD_DEAD = 0
+let zMOOD_BORED = 0
+let next_mood = 0
 let energy = 0
+let light_was = 0
+let switched = false
+setup_eyes()
 setup_mouths()
 set_up_moods()
-let light_was = input.lightLevel()
+let current = 11111
+let others = 22222
+let start = 33333
+switched = false
+light_was = input.lightLevel()
 energy = 199
-new_mood(MOOD_BORED)
-setup_eyes()
+next_mood = zMOOD_BORED
+// react to input
+new_mood(next_mood)
 basic.forever(function () {
 	
 })
 loops.everyInterval(200, function () {
-    if (my_mood != MOOD_DEAD) {
-        feel()
-        if (input.lightLevel() - light_was > 50) {
-            excite(MOOD_GOSH, 200)
-        } else if (input.lightLevel() < 100) {
-            excite(MOOD_SAD, 25)
-        }
-        light_was = input.lightLevel()
-        maybe_blink_or_snore()
+    if (my_mood != zMOOD_DEAD) {
+        maybe_react()
+        _switch()
     }
 })

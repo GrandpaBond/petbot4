@@ -173,41 +173,19 @@ function new_mood (mood: number) {
     } else if (mood == zMOOD_ASLEEP) {
         set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
     } else if (mood == zMOOD_BORED) {
-        switch_gap = 800
-        switch_time = 200
-        my_eyes = zEYES_OPEN
-        my_mouth = zMOUTH_FLAT
         set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
     } else if (mood == zMOOD_HAPPY) {
-        switch_gap = 500
-        switch_time = 100
-        my_eyes = zEYES_OPEN
-        my_mouth = zMOUTH_GRIN
         set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
     } else if (mood == zMOOD_SAD) {
-        switch_gap = 1000
-        switch_time = 800
-        my_eyes = zEYES_SAD
-        my_mouth = zMOUTH_SULK
         set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
     } else if (mood == zMOOD_ANGRY) {
-        switch_gap = 10000
-        switch_time = 100
-        my_eyes = zEYES_MAD
-        my_mouth = zMOUTH_SHOUT
-        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, 1, zMOUTH_HMMM, 1, 1, 1)
     } else if (mood == zMOOD_GOSH) {
-        switch_gap = 5000
-        switch_time = 800
-        my_eyes = zEYES_POP
-        my_mouth = zMOUTH_OPEN
         set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
     } else if (mood == zMOOD_SHIVER) {
-    	
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
     } else if (mood == zMOOD_SHIVER) {
-    	
-    } else {
-    	
+        set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 1, 1, 1)
     }
     my_mood = mood
     if (my_mood != zMOOD_DEAD) {

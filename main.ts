@@ -1,7 +1,7 @@
 function set_up_moods () {
     MOOD_DEAD = 0
     MOOD_ASLEEP = 1
-    MOOD_AWAKE = 2
+    MOOD_BORED = 2
     MOOD_HAPPY = 3
     MOOD_SAD = 4
     MOOD_ANGRY = 5
@@ -35,11 +35,6 @@ function all_mouths () {
     show_mouth(MOUTH_SULK)
     basic.pause(1000)
 }
-// When energy is between -100 and 0, we are either falling asleep or wakening. AWAKE & ASLEEP both have a FLAT mouth, and differ only in the eyes being OPEN or SHUT. We vary the blink_gap & blink_time so blinks get progressively longer with shorter gaps as energy drops to -100. Nearer 0 we have shorter blinks with longer gaps.
-function adjust_blink () {
-    blink_gap = Math.constrain(Math.map(energy, -100, 100, 500, 5000), 500, 5000)
-    blink_time = Math.constrain(Math.map(energy, -100, 100, 5000, 500), 500, 5000)
-}
 function show_eyes (eyes: number) {
     pixels = eyes
     for (let index = 0; index <= 9; index++) {
@@ -53,6 +48,9 @@ function show_eyes (eyes: number) {
         pixels = Math.floor(pixels / 2)
     }
 }
+input.onLogoEvent(TouchButtonEvent.LongPressed, function () {
+    excite(MOOD_HAPPY, 100)
+})
 function look_right () {
     show_eyes(EYES_RIGHT)
     show_mouth(MOUTH_RIGHT)
@@ -60,23 +58,35 @@ function look_right () {
     show_eyes(my_eyes)
     show_mouth(my_mouth)
 }
-// Sometime, we must add some useful behaviour for button A 
+// Sometime, we should add some useful behaviour for button A 
 input.onButtonPressed(Button.A, function () {
     look_left()
 })
 function excite (mood: number, amount: number) {
-    if (energy < 0 && energy + amount > 0) {
-        // wake up
-        new_mood(MOOD_AWAKE)
-    } else if (energy < 100 && energy + amount > 100) {
-        // react to input
-        new_mood(mood)
-    }
+    next_mood = mood
     energy += amount
     if (energy > 300) {
         energy = 300
     }
-    adjust_blink()
+}
+function feel () {
+    energy += -1
+    blink_gap = Math.constrain(Math.map(energy, -100, 100, 500, 5000), 500, 5000)
+    blink_time = Math.constrain(Math.map(energy, -100, 100, 5000, 500), 500, 5000)
+    if (energy > 100 && my_mood != next_mood) {
+        // react to input
+        new_mood(next_mood)
+    } else if (energy > 0 && my_mood != MOOD_BORED) {
+        // get bored (or wake up)
+        new_mood(MOOD_BORED)
+    } else if (energy < 0 && my_mood != MOOD_ASLEEP) {
+        // fall asleep
+        new_mood(MOOD_ASLEEP)
+    } else if (energy < -600) {
+        // die of neglect!
+        // ---permanently!
+        new_mood(MOOD_DEAD)
+    }
 }
 function setup_eyes () {
     EYES_LEFT = 873
@@ -123,7 +133,7 @@ function all_eyes () {
     show_eyes(EYES_POP)
     basic.pause(1000)
 }
-// Sometime, we must add some useful behaviour for button B 
+// Sometime, we should add some useful behaviour for button B 
 input.onButtonPressed(Button.B, function () {
     look_right()
 })
@@ -141,11 +151,8 @@ function setup_mouths () {
     MOUTH_SHOUT = 14784
     MOUTH_SULK = 17856
 }
-input.onLogoEvent(TouchButtonEvent.Pressed, function () {
-    excite(MOOD_HAPPY, 100)
-})
 input.onGesture(Gesture.ThreeG, function () {
-    excite(MOOD_GOSH, 50)
+    excite(MOOD_GOSH, 100)
 })
 function new_mood (mood: number) {
     if (mood == MOOD_DEAD) {
@@ -155,7 +162,7 @@ function new_mood (mood: number) {
         my_mouth = MOUTH_HMMM
         blink_gap = 2000
         blink_time = 1000
-    } else if (mood == MOOD_AWAKE) {
+    } else if (mood == MOOD_BORED) {
         blink_gap = 800
         blink_time = 200
         my_eyes = EYES_OPEN
@@ -215,22 +222,6 @@ function maybe_blink_or_snore () {
         serial.writeLine("")
     }
 }
-function tire (amount: number) {
-    if (energy > 0 && energy - amount < 0) {
-        // get bored
-        new_mood(MOOD_AWAKE)
-    } else if (energy > -100 && energy - amount < -100) {
-        // fall asleep
-        new_mood(MOOD_ASLEEP)
-    } else if (energy > -600 && energy - amount < -600) {
-        // die of neglect!
-        // ---permanently!
-        new_mood(MOOD_DEAD)
-        energy = -100000
-    }
-    energy += 0 - amount
-    adjust_blink()
-}
 function express () {
     show_eyes(EYES_OPEN)
     show_mouth(MOUTH_FLAT)
@@ -259,18 +250,19 @@ function express () {
 }
 let blinking = false
 let next_blink = 0
-let my_mood = 0
 let EYES_SHUT = 0
 let EYES_SAD = 0
 let EYES_POP = 0
 let EYES_MAD = 0
 let EYES_LEFT = 0
+let my_mood = 0
+let blink_time = 0
+let blink_gap = 0
+let next_mood = 0
 let EYES_RIGHT = 0
 let y = 0
 let x = 0
 let pixels = 0
-let blink_time = 0
-let blink_gap = 0
 let MOUTH_SULK = 0
 let MOUTH_SHOUT = 0
 let MOUTH_RIGHT = 0
@@ -289,24 +281,26 @@ let MOOD_SAD = 0
 let MOOD_HAPPY = 0
 let MOOD_ASLEEP = 0
 let MOOD_DEAD = 0
-let MOOD_AWAKE = 0
+let MOOD_BORED = 0
 let energy = 0
-setup_eyes()
 setup_mouths()
 set_up_moods()
 let light_was = input.lightLevel()
-energy = 100
-new_mood(MOOD_AWAKE)
+energy = 199
+new_mood(MOOD_BORED)
+setup_eyes()
 basic.forever(function () {
 	
 })
 loops.everyInterval(200, function () {
-    tire(1)
-    if (input.lightLevel() < 100) {
-        excite(MOOD_SAD, 25)
-    } else if (input.lightLevel() - light_was > 50) {
-        excite(MOOD_GOSH, 200)
+    if (my_mood != MOOD_DEAD) {
+        feel()
+        if (input.lightLevel() - light_was > 50) {
+            excite(MOOD_GOSH, 200)
+        } else if (input.lightLevel() < 100) {
+            excite(MOOD_SAD, 25)
+        }
+        light_was = input.lightLevel()
+        maybe_blink_or_snore()
     }
-    light_was = input.lightLevel()
-    maybe_blink_or_snore()
 })

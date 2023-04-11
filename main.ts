@@ -51,6 +51,7 @@ function setup_eyes () {
     zEYES_RIGHT = 882
     zEYES_SAD = 874
     zEYES_SHUT = 864
+    zEYES_UP = 27
 }
 function show_mouth (mouth: number) {
     z_pixels = mouth
@@ -126,7 +127,7 @@ function set_mood (eyes: number, mouth: number, other_eyes: number, other_mouth:
     switched = false
 }
 function maybe_react () {
-    energy += -10
+    energy += -1
     if (energy > 300) {
         // finally react to exciting input
         new_mood(input_mood)
@@ -154,7 +155,7 @@ function setup_mouths () {
     zMOUTH_RIGHT = 12800
     zMOUTH_SHOUT = 14660
     zMOUTH_SULK = 17856
-    zMOUTH_LAUGH = 14911
+    zMOUTH_LAUGH = 15332
     zMOUTH_KISS = 10378
 }
 input.onGesture(Gesture.ThreeG, function () {
@@ -164,17 +165,17 @@ function new_mood (mood: number) {
     if (my_mood != mood) {
         my_mood = mood
         if (my_mood == zMOOD_SNORING) {
-            set_mood(zEYES_POP, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_OPEN, 2000, 2000, 0)
+            set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_OPEN, 2000, 2000, 0)
         } else if (my_mood == zMOOD_ASLEEP) {
             set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 3000, 500, 0)
         } else if (my_mood == zMOOD_BORED) {
             set_mood(zEYES_OPEN, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_FLAT, 3000, 500, 3)
         } else if (my_mood == zMOOD_HAPPY) {
-            set_mood(zEYES_OPEN, zMOUTH_GRIN, zEYES_SHUT, zMOUTH_GRIN, 1000, 200, 2)
+            set_mood(zEYES_OPEN, zMOUTH_GRIN, zEYES_UP, zMOUTH_LAUGH, 2000, 600, 2)
         } else if (my_mood == zMOOD_SAD) {
-            set_mood(zEYES_SAD, zMOUTH_SULK, zEYES_SHUT, zMOUTH_SULK, 4000, 500, 1)
+            set_mood(zEYES_SAD, zMOUTH_SULK, zEYES_SHUT, zMOUTH_SULK, 4000, 600, 1)
         } else if (my_mood == zMOOD_ANGRY) {
-            set_mood(zEYES_MAD, zMOUTH_HMMM, zEYES_MAD, zMOUTH_SHOUT, 2000, 800, 1)
+            set_mood(zEYES_MAD, zMOUTH_SHOUT, zEYES_MAD, zMOUTH_HMMM, 2000, 800, 1)
         } else if (my_mood == zMOOD_GOSH) {
             set_mood(zEYES_POP, zMOUTH_OPEN, zEYES_OPEN, zMOUTH_OPEN, 1600, 800, 0)
         } else if (my_mood == zMOOD_SHIVER) {
@@ -194,11 +195,11 @@ function new_mood (mood: number) {
 function check_environment () {
     if (input.lightLevel() - light_was > 50) {
         excite(zMOOD_GOSH, 200)
-    } else if (input.lightLevel() < 100) {
+    } else if (input.lightLevel() < 120) {
         excite(zMOOD_SAD, 300)
     }
     light_was = input.lightLevel()
-    if (input.temperature() < 15) {
+    if (input.temperature() < 18) {
         excite(zMOOD_SAD, 300)
     } else if (input.temperature() < 15) {
         excite(zMOOD_SHIVER, 300)
@@ -222,6 +223,7 @@ let my_other_mouth = 0
 let my_other_eyes = 0
 let next_switch = 0
 let now = 0
+let zEYES_UP = 0
 let zEYES_SHUT = 0
 let zEYES_SAD = 0
 let zEYES_POP = 0
@@ -259,8 +261,10 @@ light_was = input.lightLevel()
 energy = 300
 input_mood = -1
 new_mood(zMOOD_BORED)
-loops.everyInterval(1000, function () {
+loops.everyInterval(200, function () {
     if (my_mood != zMOOD_DEAD) {
         maybe_react()
+        check_environment()
+        maybe_switch()
     }
 })

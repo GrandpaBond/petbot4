@@ -88,10 +88,6 @@ function maybe_switch () {
             show_mouth(my_mouth)
             show_eyes(my_eyes)
             switched = false
-            serial.writeValue("mood", my_mood)
-            serial.writeValue("switch_time", switch_time)
-            serial.writeValue("switch_gap", switch_gap)
-            serial.writeLine("")
             next_switch = input.runningTime() + randint(switch_gap, switch_vary * switch_gap)
         }
     }
@@ -189,9 +185,6 @@ function new_mood (mood: number) {
         } else if (my_mood == zMOOD_TICKLE) {
             set_mood(zEYES_OPEN, zMOUTH_OK, zEYES_FLIP, zMOUTH_FLIP, 750, 750, 0)
         }
-        serial.writeValue("new mood", my_mood)
-        serial.writeValue("energy", energy)
-        serial.writeLine("")
         if (my_mood == zMOOD_DEAD) {
             basic.showIcon(IconNames.Skull)
         } else {
@@ -224,9 +217,9 @@ let zMOUTH_HMMM = 0
 let zMOUTH_GRIN = 0
 let zMOUTH_FLAT = 0
 let zMOUTH_LEFT = 0
+let my_mood = 0
 let switch_vary = 0
 let switch_gap = 0
-let my_mood = 0
 let switch_time = 0
 let my_other_mouth = 0
 let my_other_eyes = 0

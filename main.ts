@@ -94,8 +94,8 @@ function maybe_switch () {
         }
     }
     if (my_mood == zMOOD_BORED || my_mood == zMOOD_ASLEEP) {
-        switch_gap = Math.constrain(Math.map(energy, -100, 100, 500, 5000), 500, 5000)
-        switch_time = Math.constrain(Math.map(energy, -100, 100, 5000, 500), 500, 5000)
+        switch_gap = Math.constrain(Math.map(energy, 200, 300, 200, 4000), 500, 5000)
+        switch_time = Math.constrain(Math.map(energy, 200, 300, 4000, 200), 500, 5000)
     }
 }
 input.onSound(DetectedSound.Loud, function () {
@@ -169,9 +169,9 @@ function new_mood (mood: number) {
         } else if (my_mood == zMOOD_ASLEEP) {
             set_mood(zEYES_SHUT, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_HMMM, 3000, 500, 0)
         } else if (my_mood == zMOOD_BORED) {
-            set_mood(zEYES_OPEN, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_FLAT, 3000, 500, 3)
+            set_mood(zEYES_OPEN, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_FLAT, 600, 300, 2)
         } else if (my_mood == zMOOD_HAPPY) {
-            set_mood(zEYES_OPEN, zMOUTH_GRIN, zEYES_UP, zMOUTH_LAUGH, 2000, 600, 2)
+            set_mood(zEYES_OPEN, zMOUTH_GRIN, zEYES_UP, zMOUTH_LAUGH, 1000, 400, 2)
         } else if (my_mood == zMOOD_SAD) {
             set_mood(zEYES_SAD, zMOUTH_SULK, zEYES_SHUT, zMOUTH_SULK, 4000, 600, 1)
         } else if (my_mood == zMOOD_ANGRY) {

@@ -8,6 +8,7 @@ function set_up_moods () {
     zMOOD_ANGRY = 6
     zMOOD_GOSH = 7
     zMOOD_SHIVER = 8
+    zMOOD_TICKLE = 9
 }
 function show_eyes (eyes: number) {
     z_pixels = eyes
@@ -52,6 +53,7 @@ function setup_eyes () {
     zEYES_SAD = 874
     zEYES_SHUT = 864
     zEYES_UP = 27
+    zEYES_FLIP = 324
 }
 function show_mouth (mouth: number) {
     z_pixels = mouth
@@ -98,6 +100,9 @@ function maybe_switch () {
         switch_time = Math.constrain(Math.map(energy, 200, 300, 4000, 200), 500, 5000)
     }
 }
+input.onPinPressed(TouchPin.P2, function () {
+    excite(zMOOD_TICKLE, 300)
+})
 input.onSound(DetectedSound.Loud, function () {
     excite(zMOOD_GOSH, 300)
 })
@@ -149,14 +154,15 @@ function setup_mouths () {
     zMOUTH_FLAT = 448
     zMOUTH_GRIN = 14880
     zMOUTH_HMMM = 14464
-    zMOUTH_LEFT = 6176
-    zMOUTH_OK = 4544
+    zMOUTH_LEFT = 6240
+    zMOUTH_OK = 4416
     zMOUTH_OPEN = 4420
-    zMOUTH_RIGHT = 12800
+    zMOUTH_RIGHT = 13056
     zMOUTH_SHOUT = 14660
     zMOUTH_SULK = 17856
     zMOUTH_LAUGH = 15332
-    zMOUTH_KISS = 10378
+    zMOUTH_KISS = 132
+    zMOUTH_FLIP = 28512
 }
 input.onGesture(Gesture.ThreeG, function () {
     excite(zMOOD_GOSH, 300)
@@ -171,7 +177,7 @@ function new_mood (mood: number) {
         } else if (my_mood == zMOOD_BORED) {
             set_mood(zEYES_OPEN, zMOUTH_FLAT, zEYES_SHUT, zMOUTH_FLAT, 600, 300, 2)
         } else if (my_mood == zMOOD_HAPPY) {
-            set_mood(zEYES_OPEN, zMOUTH_GRIN, zEYES_UP, zMOUTH_LAUGH, 1000, 400, 2)
+            set_mood(zEYES_OPEN, zMOUTH_GRIN, zEYES_UP, zMOUTH_KISS, 1000, 400, 2)
         } else if (my_mood == zMOOD_SAD) {
             set_mood(zEYES_SAD, zMOUTH_SULK, zEYES_SHUT, zMOUTH_SULK, 4000, 600, 1)
         } else if (my_mood == zMOOD_ANGRY) {
@@ -179,7 +185,9 @@ function new_mood (mood: number) {
         } else if (my_mood == zMOOD_GOSH) {
             set_mood(zEYES_POP, zMOUTH_OPEN, zEYES_OPEN, zMOUTH_OPEN, 1600, 800, 0)
         } else if (my_mood == zMOOD_SHIVER) {
-            set_mood(zEYES_LEFT, zMOUTH_SHOUT, zEYES_RIGHT, zMOUTH_OPEN, 200, 200, 0)
+            set_mood(zEYES_LEFT, zMOUTH_RIGHT, zEYES_RIGHT, zMOUTH_LEFT, 200, 200, 0)
+        } else if (my_mood == zMOOD_TICKLE) {
+            set_mood(zEYES_OPEN, zMOUTH_OK, zEYES_FLIP, zMOUTH_FLIP, 750, 750, 0)
         }
         serial.writeValue("new mood", my_mood)
         serial.writeValue("energy", energy)
@@ -199,12 +207,13 @@ function check_environment () {
         excite(zMOOD_SAD, 300)
     }
     light_was = input.lightLevel()
-    if (input.temperature() < 18) {
-        excite(zMOOD_SAD, 300)
-    } else if (input.temperature() < 15) {
+    if (input.temperature() < 15) {
         excite(zMOOD_SHIVER, 300)
+    } else if (input.temperature() < 18) {
+        excite(zMOOD_SAD, 300)
     }
 }
+let zMOUTH_FLIP = 0
 let zMOUTH_KISS = 0
 let zMOUTH_LAUGH = 0
 let zMOUTH_SULK = 0
@@ -223,6 +232,7 @@ let my_other_mouth = 0
 let my_other_eyes = 0
 let next_switch = 0
 let now = 0
+let zEYES_FLIP = 0
 let zEYES_UP = 0
 let zEYES_SHUT = 0
 let zEYES_SAD = 0
@@ -237,6 +247,7 @@ let zEYES_RIGHT = 0
 let y = 0
 let x = 0
 let z_pixels = 0
+let zMOOD_TICKLE = 0
 let zMOOD_SHIVER = 0
 let zMOOD_GOSH = 0
 let zMOOD_ANGRY = 0
@@ -250,6 +261,7 @@ let input_mood = 0
 let energy = 0
 let light_was = 0
 let switched = false
+pins.touchSetMode(TouchTarget.P2, TouchTargetMode.Capacitive)
 setup_eyes()
 setup_mouths()
 set_up_moods()
@@ -261,10 +273,12 @@ light_was = input.lightLevel()
 energy = 300
 input_mood = -1
 new_mood(zMOOD_BORED)
-loops.everyInterval(200, function () {
+loops.everyInterval(150, function () {
     if (my_mood != zMOOD_DEAD) {
         maybe_react()
         check_environment()
         maybe_switch()
+    } else {
+        basic.showIcon(IconNames.Skull)
     }
 })

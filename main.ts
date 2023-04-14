@@ -24,7 +24,7 @@ function show_eyes (eyes: number) {
     }
 }
 input.onLogoEvent(TouchButtonEvent.LongPressed, function () {
-    excite(zMOOD_HAPPY, 300)
+    excite(zMOOD_HAPPY, 60, true)
 })
 // Sometime, we should add some useful behaviour for button A
 input.onButtonPressed(Button.A, function () {
@@ -37,8 +37,11 @@ function look_right () {
     show_eyes(my_eyes)
     show_mouth(my_mouth)
 }
-function excite (mood: number, amount: number) {
+function excite (mood: number, amount: number, instantly: boolean) {
     input_mood = mood
+    if (instantly) {
+        energy = 300
+    }
     energy += amount
     if (energy > 500) {
         energy = 500
@@ -69,7 +72,7 @@ function show_mouth (mouth: number) {
     }
 }
 input.onGesture(Gesture.SixG, function () {
-    excite(zMOOD_ANGRY, 300)
+    excite(zMOOD_ANGRY, 120, true)
 })
 // In most moods, we temporarily switch between two faces.
 // So we may be blinking, snoring, shivering or laughing etc.
@@ -97,10 +100,10 @@ function maybe_switch () {
     }
 }
 input.onPinPressed(TouchPin.P2, function () {
-    excite(zMOOD_TICKLE, 300)
+    excite(zMOOD_TICKLE, 60, true)
 })
 input.onSound(DetectedSound.Loud, function () {
-    excite(zMOOD_GOSH, 300)
+    excite(zMOOD_GOSH, 30, true)
 })
 function look_left () {
     show_eyes(zEYES_LEFT)
@@ -114,7 +117,7 @@ input.onButtonPressed(Button.B, function () {
     look_right()
 })
 input.onGesture(Gesture.Shake, function () {
-    excite(zMOOD_GOSH, 300)
+    excite(zMOOD_BORED, 50, false)
 })
 function set_mood (eyes: number, mouth: number, other_eyes: number, other_mouth: number, gap: number, time: number, vary: number) {
     my_eyes = eyes
@@ -161,7 +164,7 @@ function setup_mouths () {
     zMOUTH_FLIP = 28512
 }
 input.onGesture(Gesture.ThreeG, function () {
-    excite(zMOOD_GOSH, 300)
+    excite(zMOOD_GOSH, 30, true)
 })
 function new_mood (mood: number) {
     if (my_mood != mood) {
@@ -195,15 +198,15 @@ function new_mood (mood: number) {
 }
 function check_environment () {
     if (input.lightLevel() - light_was > 50) {
-        excite(zMOOD_GOSH, 200)
-    } else if (input.lightLevel() < 120) {
-        excite(zMOOD_SAD, 300)
+        excite(zMOOD_GOSH, 30, true)
+    } else if (input.lightLevel() < 40) {
+        excite(zMOOD_SAD, 5, false)
     }
     light_was = input.lightLevel()
     if (input.temperature() < 15) {
-        excite(zMOOD_SHIVER, 300)
-    } else if (input.temperature() < 18) {
-        excite(zMOOD_SAD, 300)
+        excite(zMOOD_SHIVER, 50, true)
+    } else if (input.temperature() < 17) {
+        excite(zMOOD_SAD, 5, false)
     }
 }
 let zMOUTH_FLIP = 0
@@ -258,15 +261,12 @@ pins.touchSetMode(TouchTarget.P2, TouchTargetMode.Capacitive)
 setup_eyes()
 setup_mouths()
 set_up_moods()
-let current = 11111
-let others = 22222
-let start = 33333
 switched = false
 light_was = input.lightLevel()
 energy = 300
 input_mood = -1
 new_mood(zMOOD_BORED)
-loops.everyInterval(150, function () {
+loops.everyInterval(167, function () {
     if (my_mood != zMOOD_DEAD) {
         maybe_react()
         check_environment()
